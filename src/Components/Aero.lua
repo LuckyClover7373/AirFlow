@@ -173,7 +173,7 @@ function Aero:calculateForces(worldAirVelocity, airDensity, relativePosition)
 	gizmo.setColor(Color3.fromRGB(255, 255, 255))
 	gizmo.drawRay(self.wing.Position, torque, self.wing)
 
-	print(aerodynamicCoefficients.X )
+	self.vectorForce.Force = -forceAndTorque.force
 
     return forceAndTorque
 end
@@ -186,6 +186,15 @@ function Aero:constructor(super, wing)
 	self.constant = defaultConstant
     self.wing = wing
     self.flapAngle = 0
+
+	self.att = Instance.new("Attachment")
+    self.att.Parent = self.wing
+
+	self.vectorForce = Instance.new("VectorForce")
+    self.vectorForce.Parent = self.wing
+    self.vectorForce.Attachment0 = self.att
+    self.vectorForce.Force = Vector3.zero
+	self.vectorForce.Visible = true
 end
 
 return Aero

@@ -7,7 +7,7 @@ local Aero = require(script.Parent.Aero)
 local gizmo = require(script.Parent.gizmo)
 
 function Engine:constructor(super, plane)
-    workspace.Gravity = 0
+    --workspace.Gravity = 0
     self.plane = plane
     self.driver = plane:FindFirstChildWhichIsA("VehicleSeat")
     self.thrustPercent = 1
@@ -17,15 +17,15 @@ function Engine:constructor(super, plane)
 
     local att = Instance.new("Attachment")
     att.Parent = self.driver
-    --att.WorldCFrame = self.driver.CFrame
 
-    local bodyThrust = Instance.new("BodyThrust")
-    bodyThrust.Parent = self.plane.Part
-    --vectorForce.Attachment0 = att
-    bodyThrust.Force = Vector3.zero
+    local vectorForce = Instance.new("VectorForce")
+    vectorForce.Parent = self.driver
+    vectorForce.Attachment0 = att
+    vectorForce.ApplyAtCenterOfMass = true
+    vectorForce.Force = Vector3.zero
 
     local bodyAngularVelocity = Instance.new("BodyAngularVelocity")
-    bodyAngularVelocity.Parent = self.plane.Part
+    --bodyAngularVelocity.Parent = self.plane.Part
     --angularVelocity.Attachment0 = att
     bodyAngularVelocity.MaxTorque = Vector3.one * 1000
     bodyAngularVelocity.AngularVelocity = Vector3.zero
@@ -33,10 +33,8 @@ function Engine:constructor(super, plane)
     --self.driver.BodyGyro.CFrame = self.driver.CFrame
     self.update = RUN_SERVICE.Heartbeat:Connect(function(dt)
         local forceAndTorque = self:calculateAeroForces(self.driver.AssemblyLinearVelocity, self.driver.AssemblyAngularVelocity, Vector3.zero, 1.2, self.driver.AssemblyCenterOfMass)
-        bodyThrust.Force = -forceAndTorque.force
-        bodyAngularVelocity.AngularVelocity = forceAndTorque.torque
         
-        bodyThrust.Force += -self.driver.CFrame.LookVector * 400 * self.thrustPercent
+        vectorForce.Force = -self.driver.CFrame.LookVector * 3000 * self.thrustPercent
         
         gizmo.setColor(Color3.fromRGB(51, 54, 248))
 	    gizmo.drawRay(self.driver.Position, self.plane.Part.AssemblyLinearVelocity, self.driver)
@@ -51,8 +49,8 @@ end
 
 function Engine:addAero(wing)
     local newAero = Aero(wing)
-    newAero:setFlapAngle(1)
-    table.insert(self.aeros, Aero(wing))
+    if string.find(wing.Name, "Pitch") then newAero:setFlapAngle(0) end
+    table.insert(self.aeros, newAero)
 end
 
 function Engine:calculateAeroForces(velocity, anuglarVelocity, wind, airDensity, centerOfMass)
